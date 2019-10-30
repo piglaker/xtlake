@@ -1,11 +1,1 @@
-import utils
-import numpy as np
-
-layer = [utils.get_layer(3,1, 'sigmoid')]
-batch_x = [[1,1,1]]
-batch_y = [[0.5]]
-print(layer)
-for i in range(100):
-    layer, total_loss = utils.train(batch_x, batch_y, layer)
-    print(total_loss)
-    print(layer)
+import utilsimport numpy as nplayer = [utils.get_layer(3, 8, activation='ReLU', optimizer='Adamoptimizer', regularization=0.1), utils.get_layer(8, 1, activation='linear',optimizer='Adamoptimizer',regularization=0.1)]batch_x = [[0.5,0.5,0.5]]batch_y = [[0.5]]for i in range(10):    layer, total_loss = utils.train(batch_x, batch_y, layer)    print(total_loss)    #print(layer)utils.save_model(layer, 'model_test.npy')utils.load_model('model_test.npy')utils.forward(batch_x, layer)print(utils.last_layer(layer)['out_'])
