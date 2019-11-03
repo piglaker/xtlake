@@ -3,7 +3,26 @@ import numpy as np
 import random
 
 
+def fft_convolve(a,b):
+    """
+    没写完
+    :param a:
+    :param b:
+    :return:
+    """
+    n = len(a)+len(b)-1
+    N = 2**(int(np.log2(n))+1)
+    A = np.fft.fft(a, N)
+    B = np.fft.fft(b, N)
+    return np.fft.ifft(A*B)[:n]
+
+
 def normalization(x):
+    """
+    过时了
+    :param x:
+    :return:
+    """
     maxx = max(x)
     minx = min(x)
     for i in range(len(x)):
@@ -23,15 +42,24 @@ def batch(dataset, total = False,batch_size = 10):
             batch.append(dataset[i])
     else:
         return dataset
-    return  batch
+    return batch
 
 
 def get_weight(in_):
-    return np.random.normal(0.01, 0.2,size = in_)
+    """
+    返回random的weight，标量
+    :param in_:
+    :return:
+    """
+    return np.random.normal(-0.01, 0.01,size = in_)
 
 
 def get_bias():
-    return np.random.normal(0.01, 0.2)
+    """
+    返回random的bias 标量
+    :return:
+    """
+    return np.random.normal(-0.01, 0.01)
 
 
 def ReLU(x):
@@ -47,14 +75,29 @@ def tanh(x):
 
 
 def linear(x):
+    """
+    线性激活函数的梯度
+    :param x:
+    :return:
+    """
     return x
 
 
 def grad_sig(x):
+    """
+    sigmoid激活函数的梯度
+    :param x:
+    :return:
+    """
     return x*(1-x)
 
 
 def grad_ReLU(x):
+    """
+    ReLU激活函数的梯度
+    :param x:
+    :return:
+    """
     if x > 0:
         return 1
     else:
@@ -62,18 +105,40 @@ def grad_ReLU(x):
 
 
 def grad_linear(x):
+    """
+    linear激活函数的梯度
+    :param x:
+    :return:
+    """
     return 1
 
 
 def grad_tanh(x):
+    """
+    tanh激活函数的梯度
+    :param x:
+    :return:
+    """
     return 1 - math.pow(tanh(x),2)
 
 
 def grad_cross_entropy(a, y_):
+    """
+    损失函数为交叉熵时的梯度
+    :param a:
+    :param y_:
+    :return:
+    """
     return np.array(a) - np.array(y_)
 
 
 def loss(y, y_):
+    """
+    似乎没用了，过时了
+    :param y:
+    :param y_:
+    :return:
+    """
     v = []
     for i in range(len(y)):
         v.append(math.pow((y[i]-y_[i]), 2))
@@ -81,6 +146,12 @@ def loss(y, y_):
 
 
 def CE_loss(y, y_):
+    """
+    损失函数为交叉熵损失时的loss
+    :param y:
+    :param y_:
+    :return:
+    """
     val = 0
     for i in range(len(y)):
         val += - (y_[i] * math.log(y[i]))
@@ -88,16 +159,33 @@ def CE_loss(y, y_):
 
 
 def grad_MSEloss(a, y_):
+    """
+    损失函数为平方损失时的梯度
+    :param a:
+    :param y_:
+    :return:
+    """
     return np.array(a) - np.array(y_)
 
 
 def softmax(x):
+    """
+    softmax激活函数，维度为2时退化为逻辑斯蒂回归，奖输入映射到01的概率
+    :param x:
+    :return:
+    """
     output = np.exp(x)
     result = output / output.sum()
     return result
 
 
 def cross_entropy(y, y_):
+    """
+    交叉熵损失函数，用于分类任务，前面接softmax激活函数
+    :param y:
+    :param y_:
+    :return:
+    """
     val = 0
     for i in range(len(y)):
         val += - (y_[i] * math.log(y[i]))
@@ -105,6 +193,11 @@ def cross_entropy(y, y_):
 
 
 def argmax(y_):
+    """
+    得到输入向量中最大元素的位置
+    :param y_:
+    :return:
+    """
     y_ = np.array(y_)
     return np.where(y_ == max(y_))
 
@@ -132,6 +225,12 @@ def Adamoptimizer(w, b, m, v, t, learning_rate, x, grad_y, loss_, regularization
 
 
 def update(layers, learning_rate=0.001):
+    """
+    更新权重，参数
+    :param layers:
+    :param learning_rate:
+    :return:
+    """
     for i in range(len(layers)):
         layer = layers[i]
         weight = layer['weight_']
@@ -146,6 +245,7 @@ def update(layers, learning_rate=0.001):
         loss_ = layer['loss_']
         x = layer['in_']
         y = layer['out_']
+
         if layer['optimizer_'] == 'BGDoptimizer':
             for p in range(len(weight)):
                 for q in range(len(weight[p])):
@@ -161,6 +261,7 @@ def update(layers, learning_rate=0.001):
                     elif layer['activation_'] == 'tanh':
                         weight[p][q], bias[p] = BGDoptimizer(weight[p][q], bias[p],learning_rate,
                                                     x[q], grad_tanh(y[p]), loss_[p], regularization)
+
         elif layer['optimizer_'] == 'Adamoptimizer':
             for p in range(len(weight)):
                 for q in range(len(weight[p])):
@@ -183,43 +284,46 @@ def update(layers, learning_rate=0.001):
 
 
 def back_propagation(layers):
+    """
+    把误差（梯度）反向传播
+    :param layers:
+    :return:
+    """
     n = len(layers) - 1
-    #a = softmax(last_layer(layers)['out_'])
-    #loss_ = cross_entropy(a, y_)
-    #loss_ = grad_softmax(a, y_)
-
     for i in range(n, -1, -1):
         if i == n:
             layer = layers[n]
-            #layer['loss_'] = loss_
         else:
             layer1 = layers[i]
             layer2 = layers[i + 1]
             weight2 = layer2['weight_']
             loss_2 = layer2['loss_']
-            loss_1 = []
-            for q in range(len(weight2[0])):
-                loss_ = 0
-                for p in range(len(weight2)):
-                    #print(loss_2, weight2)
-                    loss_ += loss_2[p] * weight2[p][q]
-                loss_1.append(loss_)
-            layer1['loss_'] = loss_1
+            layer1['loss_'] = np.dot(loss_2, np.array([weight2]).T).flatten()
             layers[i] = layer1
 
 
 def layer_forward(x, layer):
-    weight = layer['weight_']
-    bias = layer['bias_']
-    activation = layer['activation_']
+    """
+    :param x:
+    :param layer:
+    :return:
+    """
     layer['in_'] = x
-    layer['out_'] = single_forward(x, weight, bias, activation)
-    if activation == 'softmax':
+    layer['out_'] = single_forward(x, weight=layer['weight_'], bias=layer['bias_'], activation=layer['activation_'])
+
+    if layer['activation_'] == 'softmax':
         layer['out_'] = softmax(layer['out_'])
     return layer
 
 
 def single_forward(x, weight, bias, activation):
+    """
+    :param x:
+    :param weight:
+    :param bias:
+    :param activation:
+    :return:
+    """
     x_ = []
     for i in range(len(weight)):
         t = np.dot(x, weight[i]) + bias[i]
@@ -237,6 +341,15 @@ def single_forward(x, weight, bias, activation):
 
 
 def get_layer(in_=2, out_=4, activation='ReLU', optimizer = 'BGDoptimizer', regularization = 0.00001):
+    """
+    生成一个layer
+    :param in_:size  int数字
+    :param out_: out size  int数字
+    :param activation: str  激活函数
+    :param optimizer: str  优化方法啊
+    :param regularization: float
+    :return:
+    """
     bias = []
     for i in range(out_):
         bias.append(get_bias())
@@ -248,6 +361,11 @@ def get_layer(in_=2, out_=4, activation='ReLU', optimizer = 'BGDoptimizer', regu
 
 
 def forward(x, layers):
+    """
+    :param x:
+    :param layers:
+    :return:
+    """
     out_ = x
     for i in range(len(layers)):
         layer = layers[i]
@@ -256,13 +374,21 @@ def forward(x, layers):
 
 
 def last_layer(layers):
+    """
+    :param layers:
+    :return:
+    """
     k = len(layers)-1
     last_layer = layers[k]
     return last_layer
 
 
 def loss_cal(layers, y_):
-
+    """
+    :param layers:net,
+    :param y_: 真实值
+    :return:
+    """
     a = last_layer(layers)['out_']
 
     if last_layer(layers)['activation_'] == ' softmax':
@@ -281,6 +407,15 @@ def loss_cal(layers, y_):
 
 
 def train(batch_x, batch_y, net, learning_rate=0.1, decay_rate = 0.99, decay_step = 50):
+    """
+    :param batch_x:  输入的x，一个list或者array
+    :param batch_y: 输出的y，一个向量
+    :param net: 模型，[layer1， layer2]
+    :param learning_rate: 学习率，超参数
+    :param decay_rate: 衰减率，超参数
+    :param decay_step: 衰减步长，超参数
+    :return:
+    """
     total_loss = 0
     for i, x in enumerate(batch_x):
         forward(x, net)
@@ -299,7 +434,7 @@ def train(batch_x, batch_y, net, learning_rate=0.1, decay_rate = 0.99, decay_ste
 
     lr = last_layer(net)['learning_rate_']
 
-    net = update(net, lr)
+    update(net, lr)
 
     last_layer(net).pop('loss_')
 
