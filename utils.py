@@ -51,7 +51,7 @@ def get_weight(in_):
     :param in_:
     :return:
     """
-    return np.random.normal(-0.01, 0.01,size = in_)
+    return np.random.normal(-0.01, 0.2,size = in_)
 
 
 def get_bias():
@@ -59,7 +59,7 @@ def get_bias():
     返回random的bias 标量
     :return:
     """
-    return np.random.normal(-0.01, 0.01)
+    return np.random.normal(-0.01, 0.2)
 
 
 def ReLU(x):
